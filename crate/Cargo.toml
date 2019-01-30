@@ -1,0 +1,17 @@
+[package]
+name = "wasm-dicey"
+version = "0.1.0"
+authors = ["Stephan Luther <kvsari@gmail.com>"]
+description = "Wasm frontend for dicey-dice."
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = ["console_error_panic_hook"]
+
+[dependencies]
+cfg-if = "0.1.6"
+wasm-bindgen = "0.2.33"
+console_error_panic_hook = { version = "0.1.5", optional = true }

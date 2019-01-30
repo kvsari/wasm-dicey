@@ -1,0 +1,7 @@
+dist
+node_modules
+crate/target
+crate/pkg
+crate/wasm-pack.log
+crate/Cargo.lock
+**/*.rs.bk
