@@ -28,53 +28,6 @@ macro_rules! jslog {
 }
 
 #[wasm_bindgen]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct HexagonTile {
-    pub center_x: u32,
-    pub center_y: u32,
-    pub radius: u32,
-    // Add pointy or flat.
-    // Add dice count.
-}
-
-impl HexagonTile {
-    pub fn new(center_x: u32, center_y: u32, radius: u32) -> Self {
-        HexagonTile { center_x, center_y, radius }
-    }
-}
-
-/// A rectangular grid of `HexagonTile`s.
-#[wasm_bindgen]
-#[derive(Debug, Clone)]
-pub struct HexagonGrid {
-    rows: u32,
-    columns: u32,    
-    tiles: Vec<HexagonTile>,
-}
-
-#[wasm_bindgen]
-impl HexagonGrid {
-    pub fn new(rows: u32, columns: u32, h_radius: u32) -> Self {
-        let total = rows * columns;
-        let mut tiles: Vec<HexagonTile> = Vec::with_capacity(total as usize);
-        for c in 0..columns {
-            let y = c * 10;
-            for r in 0..rows {
-                let x = r * 10;
-                let ht = HexagonTile::new(x, y, 5);
-                tiles.push(ht);
-            }
-        }
-
-        HexagonGrid { rows, columns, tiles }        
-    }
-
-    pub fn tiles(&self) -> Vec<HexagonTile> {
-        self.tiles.clone()
-    }
-}
-
-#[wasm_bindgen]
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Colour {
@@ -84,6 +37,82 @@ pub enum Colour {
     Blue = 3,
     LightGreen = 4,
     Gree = 5,
+}
+
+#[wasm_bindgen]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct HexagonTile {
+    player_id: u8,
+    player_colour: Colour,
+    dice: u8,
+}
+
+impl HexagonTile {
+    pub fn new(player_id: u8, player_colour: Colour, dice: u8) -> Self {
+        HexagonTile { player_id, player_colour, dice }
+    }
+}
+
+/// A rectangular grid of `HexagonTile`s.
+#[wasm_bindgen]
+#[derive(Debug, Clone)]
+pub struct HexagonGrid {    
+    rows: u32,
+    columns: u32,    
+    tiles: Vec<HexagonTile>,
+}
+
+#[wasm_bindgen]
+impl HexagonGrid {
+    /*
+    pub fn new(rows: u32, columns: u32, h_radius: u32) -> Self {
+        let total = rows * columns;
+        let mut tiles: Vec<HexagonTile> = Vec::with_capacity(total as usize);
+        for c in 0..columns {
+            for r in 0..rows {
+                let ht = HexagonTile::new(
+                tiles.push(ht);
+            }
+        }
+
+        HexagonGrid { rows, columns, tiles }        
+    }
+     */
+
+    pub fn blank(rows: u32, columns: u32) -> Self {
+        let mut tiles: Vec<HexagonTile> = Vec::new();
+        for _ in 0..(rows * columns) {
+            tiles.push(HexagonTile::new(1, Colour::Blue, 1));
+        }
+
+        HexagonGrid { rows, columns, tiles }
+    }
+
+    pub fn len(&self) -> usize {
+        self.tiles.len()
+    }
+
+    pub fn rows(&self) -> u32 {
+        self.rows
+    }
+
+    pub fn columns(&self) -> u32 {
+        self.columns
+    }
+
+    pub fn tiles(&self) -> *const HexagonTile {
+        self.tiles.as_ptr()
+    }
+}
+
+impl Default for HexagonGrid {
+    fn default() -> Self {
+        HexagonGrid {
+            rows: 1,
+            columns: 1,
+            tiles: vec![HexagonTile::new(1, Colour::Blue, 1)],
+        }
+    }
 }
 
 #[wasm_bindgen]
@@ -135,3 +164,4 @@ impl ViewGrid {
     }
 }
 */
+
