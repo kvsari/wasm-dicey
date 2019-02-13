@@ -28,6 +28,41 @@ macro_rules! jslog {
 }
 
 #[wasm_bindgen]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct Point {
+    x: i32,
+    y: i32,
+}
+
+#[wasm_bindgen]
+impl Point {
+    pub fn new(x: i32, y: i32) -> Self {
+        Point { x, y }
+    }
+
+    pub fn x(&self) -> i32 {
+        self.x
+    }
+
+    pub fn y(&self) -> i32 {
+        self.y
+    }
+}
+
+#[wasm_bindgen]
+pub fn pointy_hex_corner(center: &Point, radius: u32, corner: u8) -> Point {    
+    let corner: f64 = corner.into();
+    let radius: f64 = radius.into();
+    let corner: f64 = corner.into();    
+    let degrees = 60_f64 * corner - 30_f64;
+    let radians = std::f64::consts::PI / 180_f64 * degrees;
+    let new_x = (center.x() as f64) + radius * radians.cos();
+    let new_y = (center.y() as f64) + radius * radians.sin();
+
+    Point::new(new_x as i32, new_y as i32)
+}
+
+#[wasm_bindgen]
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Colour {
@@ -164,4 +199,3 @@ impl ViewGrid {
     }
 }
 */
-
