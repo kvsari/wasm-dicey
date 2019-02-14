@@ -6,6 +6,10 @@ use dicey_dice::hexagon::Grid;
 //use dicey_dice::game::Hold;
 
 mod utils;
+mod hex;
+mod grid;
+
+pub use self::hex::Detail;
 
 #[wasm_bindgen]
 extern {
@@ -50,28 +54,35 @@ impl Point {
 }
 
 #[wasm_bindgen]
-pub fn pointy_hex_corner(center: &Point, radius: u32, corner: u8) -> Point {    
-    let corner: f64 = corner.into();
-    let radius: f64 = radius.into();
-    let corner: f64 = corner.into();    
-    let degrees = 60_f64 * corner - 30_f64;
-    let radians = std::f64::consts::PI / 180_f64 * degrees;
-    let new_x = (center.x() as f64) + radius * radians.cos();
-    let new_y = (center.y() as f64) + radius * radians.sin();
-
-    Point::new(new_x as i32, new_y as i32)
-}
-
-#[wasm_bindgen]
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Colour {
     Black = 0,
     White = 1,
+    
     LightBlue = 2,
     Blue = 3,
-    LightGreen = 4,
-    Gree = 5,
+    DarkBlue = 4,
+    
+    LightGreen = 5,
+    Green = 6,
+    DarkGreen = 7,
+    
+    LightRed = 8,
+    Red = 9,
+    DarkRed = 10,
+    
+    LightBrown = 11,
+    Brown = 12,
+    DarkBrown = 13,
+
+    LightOrange = 14,
+    Orange = 15,
+    DarkOrange = 16,
+
+    LightPurple = 17,
+    Purple = 18,
+    DarkPurple = 19,
 }
 
 #[wasm_bindgen]
