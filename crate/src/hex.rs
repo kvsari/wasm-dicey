@@ -2,7 +2,7 @@
 
 use wasm_bindgen::prelude::*;
 
-use super::{Colour, Point};
+use crate::primitive::{Colour, Colours, Point};
 
 /// Determine a partical hexagon point/corner. Numbers higher than 6 wrap around.
 pub fn pointy_hex_corner(center: &Point, radius: u32, corner: u8) -> Point {    
@@ -18,6 +18,7 @@ pub fn pointy_hex_corner(center: &Point, radius: u32, corner: u8) -> Point {
 }
 
 /// Blank hexagon. Used for templating.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Blank {
     points: [Point; 6],
 }
@@ -43,10 +44,11 @@ impl Blank {
 
 /// A hexagon tile with all the information needed to render it to a HTML5 canvas.
 #[wasm_bindgen]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Detail {
     points: [Point; 6],
-    unselected_colour: Colour,
-    selected_colour: Colour,
+    colours: Colours,
+    player_number: usize,
     selected: bool,
 
     // TODO: Add dice count here (+ coordinate array?).
@@ -56,14 +58,13 @@ impl Detail {
     /// Will panic if there are less than six points.
     pub fn new(
         points: &[Point],
-        unselected_colour: Colour,
-        selected_colour: Colour,
+        player_number: usize,
     ) -> Self {
         Detail {
             // Quick and simple array initialization from slice.
             points: [points[0], points[1], points[2], points[3], points[4], points[5]],
-            unselected_colour,
-            selected_colour,
+            colours: Colours::from_player_number(player_number),
+            player_number,
             selected: false,
         }
     }
@@ -88,18 +89,22 @@ impl Detail {
     }
 
     pub fn selected_colour(&self) -> Colour {
-        self.selected_colour
+        self.colours.selected_colour
     }
 
     pub fn unselected_colour(&self) -> Colour {
-        self.unselected_colour
+        self.colours.unselected_colour
+    }
+
+    pub fn threatened_colour(&self) -> Colour {
+        self.colours.threatened_colour
     }
 
     pub fn colour(&self) -> Colour {
         if self.selected {
-            self.selected_colour
+            self.colours.selected_colour
         } else {
-            self.unselected_colour
+            self.colours.unselected_colour
         }
     }
 }

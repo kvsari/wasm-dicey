@@ -2,14 +2,15 @@ use std::iter::Iterator;
 
 use wasm_bindgen::prelude::*;
 
-use dicey_dice::hexagon::Grid;
+//use dicey_dice::hexagon::Grid;
 //use dicey_dice::game::Hold;
 
 mod utils;
-mod hex;
-mod grid;
+pub mod hex;
+pub mod grid;
+pub mod primitive;
 
-pub use self::hex::Detail;
+//pub use self::hex::Detail;
 
 #[wasm_bindgen]
 extern {
@@ -31,60 +32,7 @@ macro_rules! jslog {
     ($($t:tt)*) => (log(&format!($($t)*)))
 }
 
-#[wasm_bindgen]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct Point {
-    x: i32,
-    y: i32,
-}
-
-#[wasm_bindgen]
-impl Point {
-    pub fn new(x: i32, y: i32) -> Self {
-        Point { x, y }
-    }
-
-    pub fn x(&self) -> i32 {
-        self.x
-    }
-
-    pub fn y(&self) -> i32 {
-        self.y
-    }
-}
-
-#[wasm_bindgen]
-#[repr(u8)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum Colour {
-    Black = 0,
-    White = 1,
-    
-    LightBlue = 2,
-    Blue = 3,
-    DarkBlue = 4,
-    
-    LightGreen = 5,
-    Green = 6,
-    DarkGreen = 7,
-    
-    LightRed = 8,
-    Red = 9,
-    DarkRed = 10,
-    
-    LightBrown = 11,
-    Brown = 12,
-    DarkBrown = 13,
-
-    LightOrange = 14,
-    Orange = 15,
-    DarkOrange = 16,
-
-    LightPurple = 17,
-    Purple = 18,
-    DarkPurple = 19,
-}
-
+/*
 #[wasm_bindgen]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct HexagonTile {
@@ -209,4 +157,5 @@ impl ViewGrid {
         let shape
     }
 }
+*/
 */
