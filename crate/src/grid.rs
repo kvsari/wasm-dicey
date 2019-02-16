@@ -11,16 +11,16 @@ use crate::primitive::Point;
 /// use a rectangular shape in the `Template`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Template {
-    rows: u32,
     columns: u32,
+    rows: u32,
     hexes: Vec<Blank>,
 }
 
 impl Template {
-    pub fn new(rows: u32, columns: u32, hexes: &[Blank]) -> Self {
+    pub fn new(columns: u32, rows: u32, hexes: &[Blank]) -> Self {
         Template {
-            rows,
             columns,
+            rows,
             hexes: hexes.into_iter().map(|i| *i).collect(),
         }
     }
@@ -40,7 +40,7 @@ fn generate_row(columns: u32, start: Point, radius: u32) -> impl Iterator<Item =
 /// and down. There is implicit spacing between the hexes as a circle radius is used to
 /// define their size. Thus the circle edges (which aren't drawn) will touch but the hex
 /// edges which are within the circle (except for the corners that touch) won't touch.
-fn generate_template(rows: u32, columns: u32, start: Point, radius: u32) -> Template {
+pub fn generate_template(columns: u32, rows: u32, start: Point, radius: u32) -> Template {
     let mut blanks: Vec<Blank> = Vec::new();
     for row in (0..rows) {
         // TODO: Alter the start with each row.

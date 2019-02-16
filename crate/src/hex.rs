@@ -5,6 +5,7 @@ use wasm_bindgen::prelude::*;
 use crate::primitive::{Colour, Colours, Point};
 
 /// Determine a partical hexagon point/corner. Numbers higher than 6 wrap around.
+#[wasm_bindgen]
 pub fn pointy_hex_corner(center: &Point, radius: u32, corner: u8) -> Point {    
     let corner: f64 = corner.into();
     let radius: f64 = radius.into();
@@ -84,8 +85,33 @@ impl Detail {
         self.selected
     }
 
-    pub fn points(&self) -> [Point; 6] {
-        self.points
+    // Doesn't work with `wasm-pack build`.
+    //pub fn points(&self) -> [Point; 6] {
+    //    self.points
+    //}
+    
+    pub fn point1(&self) -> Point {
+        self.points[0]
+    }
+
+    pub fn point2(&self) -> Point {
+        self.points[1]
+    }
+
+    pub fn point3(&self) -> Point {
+        self.points[2]
+    }
+
+    pub fn point4(&self) -> Point {
+        self.points[3]
+    }
+
+    pub fn point5(&self) -> Point {
+        self.points[4]
+    }
+
+    pub fn point6(&self) -> Point {
+        self.points[5]
     }
 
     pub fn selected_colour(&self) -> Colour {

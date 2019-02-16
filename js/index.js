@@ -7,8 +7,11 @@ const GRID_COLOR = "#CCCCCC";
 const HEIGHT = 600;
 const WIDTH = 600;
 
-// Declare some dummy data
-//let dummy_hex_grid = dicey.HexagonGrid.default();
+// Quick test to see if the wasm module actually works
+const greetButton = document.getElementById("greet");
+greetButton.addEventListener("click", event => {
+    dicey.greet()
+});
 
 // Setup our canvas
 const canvas = document.getElementById("dice-board");
@@ -16,11 +19,11 @@ canvas.height = HEIGHT;
 canvas.width = WIDTH;
 const ctx = canvas.getContext('2d');
 
-const greetButton = document.getElementById("greet");
+// Game board top left hex center point
+const tl_point = dicey.Point.new(100, 100);
 
-greetButton.addEventListener("click", event => {
-    dicey.greet()
-});
+// Setup our game
+const game = dicey.game_3x1_init(tl_point, 50);
 
 const drawCircle = (x, y, r) => {
     ctx.beginPath();
