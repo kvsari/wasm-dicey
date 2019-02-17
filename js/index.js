@@ -25,6 +25,32 @@ const tl_point = dicey.Point.new(100, 100);
 // Setup our game
 const game = dicey.game_3x1_init(tl_point, 50);
 
+// Draw one hex
+const drawHexDetail = (detail) => {
+    ctx.beginPath();
+
+    let point = detail.point(0);
+    ctx.moveTo(point.x(), point.y());
+
+    for (var i = 1; i < 6; ++i) {
+        let point = detail.point(i);
+        ctx.lineTo(point.x(), point.y());
+    }
+
+    ctx.fill();
+}
+
+// Draw the entire board
+const drawGameBoard = (tessellation) => {
+    let length = tessellation.len();
+
+    for (var i = 0; i < length; ++i) {
+        let detail = tessellation.hex(i);
+        drawHexDetail(detail);
+    }
+}
+
+// Debug helping function
 const drawCircle = (x, y, r) => {
     ctx.beginPath();
 
@@ -32,6 +58,7 @@ const drawCircle = (x, y, r) => {
     ctx.stroke();
 }
 
+// Debug helping function. (Prove that a hex can be drawn).
 const drawPointyHex = (x, y, r) => {
     var point = dicey.Point.new(x, y);
 
@@ -52,51 +79,16 @@ const drawPointyHex = (x, y, r) => {
     ctx.fill();
 }
     
-/*
 // Our first render loop for the dummy data
 const renderLoop01 = () => {
-
     drawPointyHex(100, 100, 100);
-
     requestAnimationFrame(renderLoop01);
 };
-*/
-
-const drawGrid = () => {
-  ctx.beginPath();
-  ctx.strokeStyle = GRID_COLOR;
-
-  // Vertical lines.
-  for (let i = 0; i <= WIDTH; i++) {
-    ctx.moveTo(i * (CELL_SIZE + 1) + 1, 0);
-    ctx.lineTo(i * (CELL_SIZE + 1) + 1, (CELL_SIZE + 1) * HEIGHT + 1);
-  }
-
-  // Horizontal lines.
-  for (let j = 0; j <= HEIGHT; j++) {
-    ctx.moveTo(0,                           j * (CELL_SIZE + 1) + 1);
-    ctx.lineTo((CELL_SIZE + 1) * WIDTH + 1, j * (CELL_SIZE + 1) + 1);
-  }
-
-  ctx.stroke();
-};
-
-const renderLoop02 = () => {
-    drawGrid();
-    requestAnimationFrame(renderLoop02);
-}
-
-/*
-// Specific hex drawing using the dummy hex grid
-const drawDummyHexes = () => {
-    const tilesPtr = dummy_hex_grid.tiles();
-    const tiles = new Uint32Array(memory.buffer, tilesPtr, dummy_hex_grid.len());
-    
-    
-*/
 
 // First, we'll draw a circle to help us position, align and check the hexagon.
-drawCircle(200, 200, 100);
-drawPointyHex(200, 200, 100);
+//drawCircle(200, 200, 100);
+//drawPointyHex(200, 200, 100);
 //requestAnimationFrame(renderLoop01);
 
+
+drawGameBoard(game.tessellation());

@@ -89,7 +89,8 @@ impl Detail {
     //pub fn points(&self) -> [Point; 6] {
     //    self.points
     //}
-    
+
+    /*
     pub fn point1(&self) -> Point {
         self.points[0]
     }
@@ -112,6 +113,14 @@ impl Detail {
 
     pub fn point6(&self) -> Point {
         self.points[5]
+    }
+     */
+
+    /// If index is out of bounds, will wrap around to the beginning, like going around a
+    /// circle. Of course, a hexagon has six sides so the indexes will be from 0 to 5.
+    pub fn point(&self, index: usize) -> Point {
+        let index = index % 6;
+        self.points[index]
     }
 
     pub fn selected_colour(&self) -> Colour {

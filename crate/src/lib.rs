@@ -10,6 +10,7 @@ pub mod grid;
 pub mod primitive;
 
 pub use self::primitive::Point;
+pub use self::grid::Tessellation;
 
 /// Re-export for debug purposes.
 pub use self::hex::pointy_hex_corner;
@@ -34,6 +35,32 @@ macro_rules! jslog {
     ($($t:tt)*) => (log(&format!($($t)*)))
 }
 
+/// Run a game handling the web input/output with the `Session`.
+#[wasm_bindgen]
+pub struct Game {
+    session: session::Session,
+    template: grid::Template,
+
+    /// There will always be a tessellation. It is a bug if this field is left `None`.
+    tessellation: Option<Tessellation>,
+}
+
+impl Game {
+    fn new(session: session::Session, template: grid::Template) -> Self {
+        let tessellation = Some(grid::generate_tessellation(
+            &template, session.current_turn().board(),
+        ));
+        Game { session, template, tessellation }
+    }    
+}
+
+#[wasm_bindgen]
+impl Game {
+    pub fn tessellation(&self) -> Tessellation {
+        self.tessellation.clone().unwrap()
+    }
+}
+
 /// Test start a `Game` using one of the pre-baked `Boards`.
 #[wasm_bindgen]
 pub fn game_3x1_init(board_top_left: Point, hex_radius: u32) -> Game {
@@ -44,20 +71,7 @@ pub fn game_3x1_init(board_top_left: Point, hex_radius: u32) -> Game {
         .session()
         .expect("Invalid session initialization");
 
-    Game { session, template }
-}
-
-/// Run a game handling the web input/output with the `Session`.
-#[wasm_bindgen]
-pub struct Game {
-    session: session::Session,
-    template: grid::Template,
-}
-
-impl Game {
-    fn new(session: session::Session, template: grid::Template) -> Self {
-        Game { session, template }
-    }
+    Game::new(session, template)
 }
 
 /*

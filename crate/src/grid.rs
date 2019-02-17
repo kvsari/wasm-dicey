@@ -74,9 +74,22 @@ impl Tessellation {
     }
 }
 
+#[wasm_bindgen]
+impl Tessellation {
+    /// If index is out of bounds will wrap around to the beginning.
+    pub fn hex(&self, index: usize) -> Detail {
+        let index = index % self.hexes.len();
+        self.hexes.get(index).map(|d| *d).unwrap()
+    }
+    
+    pub fn len(&self) -> usize {
+        self.hexes.len()
+    }
+}
+
 /// Produce a new `Tessel;ation` by merging a `Template` and `Board`. The dimensions of the
 /// `Board` must match the `Template` otherwise things will go awry.
-fn generate_tessellation(template: &Template, board: &Board) -> Tessellation {
+pub (crate) fn generate_tessellation(template: &Template, board: &Board) -> Tessellation {
     let detail: Vec<Detail> = template.hexes
         .iter()
         .zip(board.grid().iter())
