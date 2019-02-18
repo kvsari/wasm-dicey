@@ -1,8 +1,7 @@
 import * as dicey from "../crate/pkg/wasm_dicey";
 import { memory } from "../crate/pkg/wasm_dicey_bg";
 
-const CELL_SIZE = 5; // px
-const GRID_COLOR = "#CCCCCC";
+import { css_colour_from_num } from "./colours.js";
 
 const HEIGHT = 700;
 const WIDTH = 700;
@@ -29,6 +28,11 @@ const game = dicey.game_3x3_init(tl_point, 100);
 const drawHexDetail = (detail) => {
     ctx.beginPath();
 
+    var colour = css_colour_from_num(detail.colour());
+
+    ctx.fillStyle = colour;
+    ctx.strokeStyle = colour;
+
     let fpoint = detail.point(0);
     ctx.moveTo(fpoint.x(), fpoint.y());
 
@@ -38,7 +42,7 @@ const drawHexDetail = (detail) => {
     }
     ctx.lineTo(fpoint.x(), fpoint.y());
 
-    //ctx.fill();
+    ctx.fill();
     ctx.stroke();
 }
 

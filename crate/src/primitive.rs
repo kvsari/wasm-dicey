@@ -1,5 +1,5 @@
 //! Tiny stuff from which others are built out of.
-use std::ops;
+use std::{fmt, ops};
 
 use wasm_bindgen::prelude::*;
 
@@ -83,14 +83,50 @@ pub enum Colour {
     Brown = 12,
     DarkBrown = 13,
 
-    LightOrange = 14,
-    Orange = 15,
-    DarkOrange = 16,
+    LightYellow = 14,
+    Yellow = 15,
+    Orange = 16,
 
-    LightPurple = 17,
+    MediumPurple = 17,
     Purple = 18,
-    DarkPurple = 19,
+    RebeccaPurple = 19,
 }
+
+impl fmt::Display for Colour {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Colour::Black => write!(f, "black"),
+            Colour::White => write!(f, "white"),
+            Colour::LightBlue => write!(f, "lightblue"),
+            Colour::LightBrown => write!(f, "lightbrown"),
+            Colour::LightGreen => write!(f, "lightgreen"),
+            Colour::LightRed => write!(f, "lightred"),
+            Colour::LightYellow => write!(f, "lightyellow"),
+            Colour::MediumPurple => write!(f, "mediumpurple"),
+            Colour::Blue => write!(f, "blue"),
+            Colour::Green => write!(f, "green"),
+            Colour::Red => write!(f, "red"),
+            Colour::Brown => write!(f, "brown"),
+            Colour::Yellow => write!(f, "yellow"),
+            Colour::Purple => write!(f, "purple"),
+            Colour::DarkBlue => write!(f, "darkblue"),
+            Colour::DarkGreen => write!(f, "darkgreen"),
+            Colour::DarkBrown => write!(f, "darkbrown"),
+            Colour::DarkRed => write!(f, "darkred"),
+            Colour::Orange => write!(f, "orange"),
+            Colour::RebeccaPurple => write!(f, "rebeccapurple"),
+        }
+    }
+}
+
+/*
+#[wasm_bindgen]
+impl Colour {
+    pub fn css_colour(&self) -> String {
+        self.to_string()
+    }
+}
+*/
 
 /// Convenience struct for grouping together colours for a player.
 #[wasm_bindgen]
@@ -124,8 +160,8 @@ impl Colours {
             2 => Colours::new(Colour::Green, Colour::DarkGreen, Colour::LightGreen),
             3 => Colours::new(Colour::Red, Colour::DarkRed, Colour::LightRed),
             4 => Colours::new(Colour::Brown, Colour::DarkBrown, Colour::LightBrown),
-            5 => Colours::new(Colour::Orange, Colour::DarkOrange, Colour::LightOrange),
-            6 => Colours::new(Colour::Purple, Colour::DarkPurple, Colour::LightPurple),
+            5 => Colours::new(Colour::Yellow, Colour::Orange, Colour::LightYellow),
+            6 => Colours::new(Colour::Purple, Colour::RebeccaPurple, Colour::MediumPurple),
             _ => unreachable!(),
         }
     }
