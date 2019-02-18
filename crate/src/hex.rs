@@ -90,32 +90,6 @@ impl Detail {
     //    self.points
     //}
 
-    /*
-    pub fn point1(&self) -> Point {
-        self.points[0]
-    }
-
-    pub fn point2(&self) -> Point {
-        self.points[1]
-    }
-
-    pub fn point3(&self) -> Point {
-        self.points[2]
-    }
-
-    pub fn point4(&self) -> Point {
-        self.points[3]
-    }
-
-    pub fn point5(&self) -> Point {
-        self.points[4]
-    }
-
-    pub fn point6(&self) -> Point {
-        self.points[5]
-    }
-     */
-
     /// If index is out of bounds, will wrap around to the beginning, like going around a
     /// circle. Of course, a hexagon has six sides so the indexes will be from 0 to 5.
     pub fn point(&self, index: usize) -> Point {

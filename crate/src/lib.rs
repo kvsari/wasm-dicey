@@ -1,4 +1,3 @@
-use std::iter::Iterator;
 
 use wasm_bindgen::prelude::*;
 
@@ -66,6 +65,30 @@ impl Game {
 pub fn game_3x1_init(board_top_left: Point, hex_radius: u32) -> Game {
     let template = grid::generate_template(3, 1, board_top_left, hex_radius);
     let board = game::canned_3x1_start01();
+    let session = session::Setup::new()
+        .set_board(board)
+        .session()
+        .expect("Invalid session initialization");
+
+    Game::new(session, template)
+}
+
+#[wasm_bindgen]
+pub fn game_2x2_init(board_top_left: Point, hex_radius: u32) -> Game {
+    let template = grid::generate_template(2, 2, board_top_left, hex_radius);
+    let board = game::canned_2x2_start01();
+    let session = session::Setup::new()
+        .set_board(board)
+        .session()
+        .expect("Invalid session initialization");
+
+    Game::new(session, template)
+}
+
+#[wasm_bindgen]
+pub fn game_3x3_init(board_top_left: Point, hex_radius: u32) -> Game {
+    let template = grid::generate_template(3, 3, board_top_left, hex_radius);
+    let board = game::canned_3x3_start01();
     let session = session::Setup::new()
         .set_board(board)
         .session()

@@ -4,8 +4,8 @@ import { memory } from "../crate/pkg/wasm_dicey_bg";
 const CELL_SIZE = 5; // px
 const GRID_COLOR = "#CCCCCC";
 
-const HEIGHT = 600;
-const WIDTH = 600;
+const HEIGHT = 700;
+const WIDTH = 700;
 
 // Quick test to see if the wasm module actually works
 const greetButton = document.getElementById("greet");
@@ -23,21 +23,23 @@ const ctx = canvas.getContext('2d');
 const tl_point = dicey.Point.new(100, 100);
 
 // Setup our game
-const game = dicey.game_3x1_init(tl_point, 50);
+const game = dicey.game_3x3_init(tl_point, 100);
 
 // Draw one hex
 const drawHexDetail = (detail) => {
     ctx.beginPath();
 
-    let point = detail.point(0);
-    ctx.moveTo(point.x(), point.y());
+    let fpoint = detail.point(0);
+    ctx.moveTo(fpoint.x(), fpoint.y());
 
     for (var i = 1; i < 6; ++i) {
         let point = detail.point(i);
         ctx.lineTo(point.x(), point.y());
     }
+    ctx.lineTo(fpoint.x(), fpoint.y());
 
-    ctx.fill();
+    //ctx.fill();
+    ctx.stroke();
 }
 
 // Draw the entire board

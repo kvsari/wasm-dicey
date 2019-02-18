@@ -26,8 +26,10 @@ impl Template {
     }
 }
 
-fn generate_row(columns: u32, start: Point, radius: u32) -> impl Iterator<Item = Blank> {
-    let translate_by = Point::new(radius as i32, 0);
+fn generate_row(
+    columns: u32, start: Point, width: u32, radius: u32
+) -> impl Iterator<Item = Blank> {
+    let translate_by = Point::new(width as i32, 0);
     (0..columns)
         .map(move |column| {
             let translate_by = translate_by * column as i32;
@@ -41,14 +43,37 @@ fn generate_row(columns: u32, start: Point, radius: u32) -> impl Iterator<Item =
 /// define their size. Thus the circle edges (which aren't drawn) will touch but the hex
 /// edges which are within the circle (except for the corners that touch) won't touch.
 pub fn generate_template(columns: u32, rows: u32, start: Point, radius: u32) -> Template {
-    let mut blanks: Vec<Blank> = Vec::new();
-    for row in (0..rows) {
-        // TODO: Alter the start with each row.
-        let start = start;
+    let width = (3_f64.sqrt() * radius as f64).round() as u32;
+    let half_width = (width / 2) as i32;
+    let height = 2 * radius;
+    let three_quarter_height = (height as f64 * 0.75_f64).round() as i32;
+    let one_and_half_height = (height as f64 * 1.5_f64).round() as i32;
 
-        // Generate each line from the start point.
-        blanks.extend(generate_row(columns, start, radius));
-    }
+    let even_row_start = Point::new(0, 0);
+    let odd_row_start = Point::new(half_width, three_quarter_height);
+    //let row_increment = Point::new(1, one_and_half_height);
+    
+    let mut blanks: Vec<Blank> = Vec::new();
+    let mut even_rows = 0;
+    let mut odd_rows = 0;
+    
+    (0..rows)
+        .for_each(|row| {
+            let offset = if row % 2 == 0 {
+                // We have an even row
+                let height_increment = one_and_half_height * even_rows;
+                even_rows += 1;
+                even_row_start + Point::new(0, height_increment)
+            } else {
+                // We have an odd row
+                let height_increment = one_and_half_height * odd_rows;
+                odd_rows += 1;
+                odd_row_start + Point::new(0, height_increment)
+            };
+            
+            // Generate each line from the start point.
+            blanks.extend(generate_row(columns, offset + start, width, radius));
+        });
 
     Template::new(rows, columns, blanks.as_slice())
 }
