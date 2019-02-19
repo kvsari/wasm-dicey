@@ -5,11 +5,13 @@ use dicey_dice::{session, game};
 
 mod utils;
 pub mod hex;
+pub mod dice;
 pub mod grid;
 pub mod primitive;
 
 pub use self::primitive::Point;
 pub use self::grid::Tessellation;
+pub use self::dice::{DiceTemplate, Position};
 
 /// Re-export for debug purposes.
 pub use self::hex::pointy_hex_corner;

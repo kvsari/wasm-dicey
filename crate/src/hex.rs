@@ -22,6 +22,7 @@ pub fn pointy_hex_corner(center: &Point, radius: u32, corner: u8) -> Point {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Blank {
     points: [Point; 6],
+    center: Point,
 }
 
 impl Blank {
@@ -35,11 +36,16 @@ impl Blank {
                 pointy_hex_corner(center, radius, 5),
                 pointy_hex_corner(center, radius, 6),
             ],
+            center: *center,
         }
     }
     
     pub fn points(&self) -> &[Point] {
         &self.points
+    }
+
+    pub fn center(&self) -> Point {
+        self.center
     }
 }
 
@@ -48,31 +54,39 @@ impl Blank {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Detail {
     points: [Point; 6],
+    center: Point,
     colours: Colours,
     player_number: usize,
     selected: bool,
-
-    // TODO: Add dice count here (+ coordinate array?).
+    dice: u8,
 }
 
 impl Detail {
     /// Will panic if there are less than six points.
     pub fn new(
         points: &[Point],
+        center: Point,
         player_number: usize,
+        dice: u8,
     ) -> Self {
         Detail {
             // Quick and simple array initialization from slice.
             points: [points[0], points[1], points[2], points[3], points[4], points[5]],
+            center,
             colours: Colours::from_player_number(player_number),
             player_number,
             selected: false,
+            dice,
         }
     }
 }
 
 #[wasm_bindgen]
 impl Detail {
+    pub fn center(&self) -> Point {
+        self.center
+    }
+    
     pub fn select(&mut self) {
         self.selected = true;
     }
@@ -115,5 +129,9 @@ impl Detail {
         } else {
             self.colours.unselected_colour
         }
+    }
+
+    pub fn dice(&self) -> u8 {
+        self.dice
     }
 }

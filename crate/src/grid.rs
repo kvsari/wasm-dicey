@@ -13,14 +13,16 @@ use crate::primitive::Point;
 pub struct Template {
     columns: u32,
     rows: u32,
+    radius: u32,
     hexes: Vec<Blank>,
 }
 
 impl Template {
-    pub fn new(columns: u32, rows: u32, hexes: &[Blank]) -> Self {
+    pub fn new(columns: u32, rows: u32, radius: u32, hexes: &[Blank]) -> Self {
         Template {
             columns,
             rows,
+            radius,
             hexes: hexes.into_iter().map(|i| *i).collect(),
         }
     }
@@ -75,7 +77,7 @@ pub fn generate_template(columns: u32, rows: u32, start: Point, radius: u32) -> 
             blanks.extend(generate_row(columns, offset + start, width, radius));
         });
 
-    Template::new(rows, columns, blanks.as_slice())
+    Template::new(rows, columns, radius, blanks.as_slice())
 }
     
 
@@ -86,14 +88,16 @@ pub fn generate_template(columns: u32, rows: u32, start: Point, radius: u32) -> 
 pub struct Tessellation {
     rows: u32,
     columns: u32,
+    radius: u32,
     hexes: Vec<Detail>,
 }
 
 impl Tessellation {
-    pub fn new(rows: u32, columns: u32, hexes: &[Detail]) -> Self {
+    pub fn new(rows: u32, columns: u32, radius: u32, hexes: &[Detail]) -> Self {
         Tessellation {
             rows,
             columns,
+            radius,
             hexes: hexes.into_iter().map(|i| *i).collect(),
         }
     }
@@ -110,6 +114,10 @@ impl Tessellation {
     pub fn len(&self) -> usize {
         self.hexes.len()
     }
+
+    pub fn radius(&self) -> u32 {
+        self.radius
+    }
 }
 
 /// Produce a new `Tessel;ation` by merging a `Template` and `Board`. The dimensions of the
@@ -118,12 +126,18 @@ pub (crate) fn generate_tessellation(template: &Template, board: &Board) -> Tess
     let detail: Vec<Detail> = template.hexes
         .iter()
         .zip(board.grid().iter())
-        .map(|(blank, hex)| Detail::new(blank.points(), *hex.data().owner().number()))
+        .map(|(blank, hex)| Detail::new(
+            blank.points(),
+            blank.center(),
+            *hex.data().owner().number(),
+            *hex.data().dice(),
+        ))
         .collect();
 
     Tessellation {
         rows: template.rows,
         columns: template.columns,
+        radius: template.radius,
         hexes: detail,
     }
 }

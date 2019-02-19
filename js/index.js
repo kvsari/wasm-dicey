@@ -5,6 +5,8 @@ import { css_colour_from_num } from "./colours.js";
 
 const HEIGHT = 700;
 const WIDTH = 700;
+const DIE_COLOUR = 'white';
+const DOT_COLOUR = 'black';
 
 // Quick test to see if the wasm module actually works
 const greetButton = document.getElementById("greet");
@@ -46,6 +48,21 @@ const drawHexDetail = (detail) => {
     ctx.stroke();
 }
 
+// Draw dice on the hex
+const drawHexDice = (center, radius, dots) => {
+    var dice = dicey.DiceTemplate.new(center, radius, dicey.Position.TopLeft);
+    
+    ctx.beginPath();
+
+    ctx.fillStyle = DIE_COLOUR;
+    ctx.strokeStyle = DOT_COLOUR;
+    
+    ctx.rect(dice.x(), dice.y(), dice.width(), dice.height());
+    
+    ctx.fill();
+    ctx.stroke();
+}
+    
 // Draw the entire board
 const drawGameBoard = (tessellation) => {
     let length = tessellation.len();
@@ -53,6 +70,7 @@ const drawGameBoard = (tessellation) => {
     for (var i = 0; i < length; ++i) {
         let detail = tessellation.hex(i);
         drawHexDetail(detail);
+        drawHexDice(detail.center(), tessellation.radius(), 0);
     }
 }
 
@@ -95,6 +113,5 @@ const renderLoop01 = () => {
 //drawCircle(200, 200, 100);
 //drawPointyHex(200, 200, 100);
 //requestAnimationFrame(renderLoop01);
-
 
 drawGameBoard(game.tessellation());
