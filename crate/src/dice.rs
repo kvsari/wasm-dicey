@@ -20,6 +20,27 @@ pub struct Dot {
     radius: u32,
 }
 
+impl Dot {
+    fn new(center: Point, radius: u32) -> Self {
+        Dot { center, radius }
+    }
+}
+
+#[wasm_bindgen]
+impl Dot {
+    pub fn x(&self) -> i32 {
+        self.center.x()
+    }
+
+    pub fn y(&self) -> i32 {
+        self.center.y()
+    }
+
+    pub fn radius(&self) -> u32 {
+        self.radius
+    }
+}
+
 fn dice_len_from_radius(radius: u32) -> i32 {
     (radius as f64 / 2.5_f64).round() as i32
 }
@@ -77,6 +98,21 @@ impl DiceTemplate {
 
     pub fn height(&self) -> i32 {
         self.square.length
+    }
+
+    pub fn dot(&self, position: Position) -> Dot {
+        let radius = (self.square.length as f64 * 0.1_f64).round() as u32;
+        let pos_inc = (self.square.length as f64 * 0.25_f64).round() as i32;
+        let tl = self.square.top_left;
+        let point = match position {
+            Position::TopLeft => tl + Point::new(pos_inc, pos_inc),
+            Position::TopRight => tl + Point::new(pos_inc * 3, pos_inc),
+            Position::BottomLeft => tl + Point::new(pos_inc, pos_inc * 3),
+            Position::BottomRight => tl + Point::new(pos_inc * 3, pos_inc * 3),
+            Position::Center => tl + Point::new(pos_inc * 2, pos_inc * 2),
+        };
+        
+        Dot::new(point, radius)
     }
 }
 
