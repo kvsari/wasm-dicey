@@ -60,6 +60,32 @@ impl Game {
     pub fn tessellation(&self) -> Tessellation {
         self.tessellation.clone().unwrap()
     }
+
+    /// This method will take a pixel coordinate with (0, 0) being the center point of the
+    /// first hexagon Cube(0, 0, 0). If a valid (for the current player) hex is selected,
+    /// this state will be stored in the `Tessellation`. Then if the player enters a second
+    /// follow up valid click then the game state will advance. True is returned in this
+    /// case. False if the game state wasn't advanced.
+    pub fn select_hex_by_pixel(&mut self, pixel: Point) -> bool {
+        // 1. Get the coordinate from the pixel point.
+        let coordinate = pixel.hexagon_axial(self.template.radius());
+
+        // 2. Fetch the hexagon if any
+        //let mut detail = 
+
+        // 3. Check if there isn't already a selected hexagon.
+
+        // 4. If it's the selected hexagon. Deselect it.
+        // 4a. Go through the entire grid and reset all colours to standard. Return false.
+
+        // 5. Otherwise, check if the new hexagon is a valid attack.
+        // 5b. If not, Return false.
+
+        // 6. Carry out attack. Advance game state. Generate new Tesselation.
+        //    Return true.
+
+        false
+    }
 }
 
 /// Test start a `Game` using one of the pre-baked `Boards`.

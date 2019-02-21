@@ -1,13 +1,29 @@
 import * as dicey from "../crate/pkg/wasm_dicey";
 import { memory } from "../crate/pkg/wasm_dicey_bg";
 
-import { css_colour_from_num } from "./colours.js";
-import { drawDiceStack } from "./dice.js";
+//import { css_colour_from_num } from "./colours.js";
+import * as board from "./board.js";
 
 const HEIGHT = 700;
 const WIDTH = 700;
 const DIE_COLOUR = 'white';
 const DOT_COLOUR = 'black';
+
+// Debug helping function
+const drawCircle = (context, x, y, r) => {
+    context.beginPath();
+    context.fillStyle = "orange";
+    context.arc(x, y, r, 0, 2 * Math.PI)
+    context.fill();
+}
+
+// Check that a canvas (x, y) coordinate was properly translated to board (x, y).
+const drawHexBoardRelativeCircle = (context, point, radius) => {
+    context.beginPath();
+    context.fillStyle = "silver";
+    context.arc(point.x(), point.y(), radius, 0, 2 * Math.PI)
+    context.fill();
+}
 
 // Quick test to see if the wasm module actually works
 const greetButton = document.getElementById("greet");
@@ -27,54 +43,24 @@ const tl_point = dicey.Point.new(100, 100);
 // Setup our game
 const game = dicey.game_3x3_init(tl_point, 100);
 
-// Draw one hex
-const drawHexDetail = (detail) => {
-    ctx.beginPath();
+// Handle clicks on the canvas
+canvas.addEventListener("click", event => {
+    const boundingRect = canvas.getBoundingClientRect();
+    const x = event.clientX - boundingRect.left;
+    const y = event.clientY - boundingRect.top;
 
-    var colour = css_colour_from_num(detail.colour());
+    // It works.
+    //drawCircle(ctx, x, y, 10);
 
-    ctx.fillStyle = colour;
-    ctx.strokeStyle = colour;
+    // Offset the (x,y) coordinate since the grid is not exactly aligned with the canvas
+    var board_start = game.tessellation().start_hex_center();
+    var board_coord = dicey.Point.new(x - board_start.x(), y - board_start.y());
 
-    let fpoint = detail.point(0);
-    ctx.moveTo(fpoint.x(), fpoint.y());
+    // Check that board offset works.
+    //drawHexBoardRelativeCircle(ctx, board_coord, 10);
+});
 
-    for (var i = 1; i < 6; ++i) {
-        let point = detail.point(i);
-        ctx.lineTo(point.x(), point.y());
-    }
-    ctx.lineTo(fpoint.x(), fpoint.y());
-
-    ctx.fill();
-    ctx.stroke();
-}
-    
-// Draw the entire board
-const drawGameBoard = (tessellation) => {
-    let length = tessellation.len();
-
-    for (var i = 0; i < length; ++i) {
-        let detail = tessellation.hex(i);
-        drawHexDetail(detail);
-        drawDiceStack(
-            ctx,
-            DIE_COLOUR,
-            DOT_COLOUR,
-            detail.center(),
-            tessellation.radius(),
-            detail.dice()
-        );
-    }
-}
-
-// Debug helping function
-const drawCircle = (x, y, r) => {
-    ctx.beginPath();
-
-    ctx.arc(x, y, r, 0, 2 * Math.PI)
-    ctx.stroke();
-}
-
+/*
 // Debug helping function. (Prove that a hex can be drawn).
 const drawPointyHex = (x, y, r) => {
     var point = dicey.Point.new(x, y);
@@ -95,7 +81,7 @@ const drawPointyHex = (x, y, r) => {
     ctx.lineTo(point6.x(), point6.y());
     ctx.fill();
 }
-    
+
 // Our first render loop for the dummy data
 const renderLoop01 = () => {
     drawPointyHex(100, 100, 100);
@@ -106,5 +92,6 @@ const renderLoop01 = () => {
 //drawCircle(200, 200, 100);
 //drawPointyHex(200, 200, 100);
 //requestAnimationFrame(renderLoop01);
+*/
 
-drawGameBoard(game.tessellation());
+board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());

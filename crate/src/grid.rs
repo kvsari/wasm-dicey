@@ -8,7 +8,8 @@ use crate::hex::{Blank, Detail};
 use crate::primitive::Point;
 
 /// A drawing template of the grid which will contain all the coordinates precomputed. We
-/// use a rectangular shape in the `Template`.
+/// use a rectangular shape in the `Template`. A `Template` is expected to have at least
+/// one hex.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Template {
     columns: u32,
@@ -25,6 +26,10 @@ impl Template {
             radius,
             hexes: hexes.into_iter().map(|i| *i).collect(),
         }
+    }
+
+    pub fn radius(&self) -> u32 {
+        self.radius
     }
 }
 
@@ -82,7 +87,7 @@ pub fn generate_template(columns: u32, rows: u32, start: Point, radius: u32) -> 
     
 
 /// A grid meant to be viewable. Can also find the hexagon within which a point collides
-/// with to help with selecting.
+/// with to help with selecting. A `Tessellation` is expected to have at least one hex.
 #[wasm_bindgen]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Tessellation {
@@ -101,6 +106,12 @@ impl Tessellation {
             hexes: hexes.into_iter().map(|i| *i).collect(),
         }
     }
+
+    /*
+    pub fn fetch(&mut self, coordinate: Axial) -> Option<&mut Detail> {
+        
+    }
+    */
 }
 
 #[wasm_bindgen]
@@ -118,9 +129,16 @@ impl Tessellation {
     pub fn radius(&self) -> u32 {
         self.radius
     }
+
+    pub fn start_hex_center(&self) -> Point {
+        self.hexes
+            .first()
+            .map(|d| d.center())
+            .unwrap_or_default()
+    }    
 }
 
-/// Produce a new `Tessel;ation` by merging a `Template` and `Board`. The dimensions of the
+/// Produce a new `Tessellation` by merging a `Template` and `Board`. The dimensions of the
 /// `Board` must match the `Template` otherwise things will go awry.
 pub (crate) fn generate_tessellation(template: &Template, board: &Board) -> Tessellation {
     let detail: Vec<Detail> = template.hexes

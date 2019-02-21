@@ -3,6 +3,8 @@ use std::{fmt, ops};
 
 use wasm_bindgen::prelude::*;
 
+use dicey_dice::hexagon::Axial;
+
 #[wasm_bindgen]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Point {
@@ -22,6 +24,29 @@ impl Point {
 
     pub fn y(&self) -> i32 {
         self.y
+    }
+}
+
+impl Point {
+    pub fn hexagon_axial(&self, radius: u32) -> Axial {
+        let radius = radius as f64;
+        let x = self.x as f64;
+        let y = self.y as f64;
+
+        let sqrt_3_div_3 = 3_f64.sqrt() / 3_f64;
+        let one_third = 1_f64 / 3_f64;
+        let two_thirds = 2_f64 / 3_f64;
+
+        let column = ((sqrt_3_div_3 * x - one_third * y) / radius).round() as i32;
+        let row = (two_thirds * y / radius).round() as i32;
+        
+        (column, row).into()
+    }
+}
+
+impl Default for Point {
+    fn default() -> Self {
+        Point::new(0, 0)
     }
 }
 
@@ -49,6 +74,28 @@ impl<'a> ops::Add<&'a Point> for Point {
     }
 }
 
+impl ops::Sub for Point {
+    type Output = Point;
+
+    fn sub(self, rhs: Point) -> Self {
+        Point {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
+impl<'a> ops::Sub<&'a Point> for Point {
+    type Output = Point;
+
+    fn sub(self, rhs: &Point) -> Self {
+        Point {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
 impl ops::Mul<i32> for Point {
     type Output = Point;
 
@@ -59,6 +106,8 @@ impl ops::Mul<i32> for Point {
         }
     }
 }
+
+
 
 #[wasm_bindgen]
 #[repr(u8)]
