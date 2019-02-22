@@ -3,7 +3,7 @@ use std::ops::Neg;
 
 use wasm_bindgen::prelude::*;
 
-use crate::primitive::{Colour, Point};
+use crate::primitive::Point;
 
 /// Square mostly mirroring the `rect()` method call on HTML5 `<canvas>`.
 #[wasm_bindgen]

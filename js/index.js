@@ -58,6 +58,9 @@ canvas.addEventListener("click", event => {
 
     // Check that board offset works.
     //drawHexBoardRelativeCircle(ctx, board_coord, 10);
+
+    // Forward this coordinate to the game state and let it do its thing.
+    game.select_hex_by_pixel(board_coord);
 });
 
 /*

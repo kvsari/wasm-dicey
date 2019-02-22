@@ -44,6 +44,9 @@ pub struct Game {
 
     /// There will always be a tessellation. It is a bug if this field is left `None`.
     tessellation: Option<Tessellation>,
+
+    /// Index of selected hex if any.
+    selected: Option<usize>,
 }
 
 impl Game {
@@ -70,8 +73,15 @@ impl Game {
         // 1. Get the coordinate from the pixel point.
         let coordinate = pixel.hexagon_axial(self.template.radius());
 
-        // 2. Fetch the hexagon if any
-        //let mut detail = 
+        // 2. Get the hexagon index.
+        let board = self.session.current_turn().board();
+        let hex_index = match board.grid().fetch_index(coordinate) {
+            Ok(index) => index,
+            Err(e) => {
+                jslog!("Invalid hexagon coordinate: {}", &e);
+                return false;
+            },
+        };
 
         // 3. Check if there isn't already a selected hexagon.
 
