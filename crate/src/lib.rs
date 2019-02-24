@@ -1,7 +1,7 @@
 
 use wasm_bindgen::prelude::*;
 
-use dicey_dice::{session, game};
+use dicey_dice::{session, game, hexagon};
 
 mod utils;
 pub mod hex;
@@ -45,8 +45,11 @@ pub struct Game {
     /// There will always be a tessellation. It is a bug if this field is left `None`.
     tessellation: Option<Tessellation>,
 
+    /// There will always be a current turn.
+    turn: Option<session::State>,
+
     /// Index of selected hex if any.
-    selected: Option<usize>,
+    selected: Option<(usize, hexagon::Cube)>,
 }
 
 impl Game {
@@ -54,7 +57,9 @@ impl Game {
         let tessellation = Some(grid::generate_tessellation(
             &template, session.current_turn().board(),
         ));
-        Game { session, template, tessellation }
+        let selected = None;
+        let turn = Some(session.current_turn().to_owned());
+        Game { session, template, tessellation, turn, selected }
     }    
 }
 
@@ -73,28 +78,122 @@ impl Game {
         // 1. Get the coordinate from the pixel point.
         let coordinate = pixel.hexagon_axial(self.template.radius());
 
+        /*
         // 2. Get the hexagon index.
-        let board = self.session.current_turn().board();
-        let hex_index = match board.grid().fetch_index(coordinate) {
-            Ok(index) => index,
-            Err(e) => {
-                jslog!("Invalid hexagon coordinate: {}", &e);
-                return false;
-            },
-        };
+        let hex_index = match self.turn
+            .as_ref()
+            .unwrap()
+            .board()
+            .grid()
+            .fetch_index(coordinate) {
+                Ok(index) => index,
+                Err(e) => {
+                    jslog!("Invalid hexagon coordinate: {}", &e);
+                    return false;
+                },
+            };
+        */
 
+        /*
+        // Get the current hexagon
+        let detail = self.tessellation
+            .as_mut()
+            .unwrap()
+            .hex_mut(hex_index)
+            .unwrap();
+        */
+        
+        // We also want to see and update the colour of any threatened hexes.
+        let t_coords: Vec<hexagon::Cube> = self.turn
+            .as_ref()
+            .unwrap()
+            .choices()
+            .iter()
+            .filter_map(|choice| match choice.action() {
+                game::Action::Attack(from_hex, to_hex) => {
+                    if *from_hex == coordinate.into() {
+                        Some(*to_hex)
+                    } else {
+                        None
+                    }
+                },
+                _ => None,
+            })
+            .collect();
+        
         // 3. Check if there isn't already a selected hexagon.
+        if let Some((selected_index, selected_cube)) = self.selected {
+            if selected_cube == coordinate {
+                // If it's the selected hexagon. Deselect it.
+                let detail = self.tessellation
+                    .as_mut()
+                    .unwrap()
+                    .hex_mut(hex_index)
+                    .unwrap();
+                detail.set_safe();
+                self.selected = None;
 
-        // 4. If it's the selected hexagon. Deselect it.
-        // 4a. Go through the entire grid and reset all colours to standard. Return false.
+                // Reset the threatened hexagons (if any) to safe.
+                t_coords
+                    .iter()
+                    .for_each(|t_coord| {
+                        let threatened_index = self.turn
+                            .as_ref()
+                            .unwrap()
+                            .board()
+                            .grid()
+                            .fetch_index(t_coord)
+                            .unwrap();
+                        let detail = self.tessellation
+                            .as_mut()
+                            .unwrap()
+                            .hex_mut(threatened_index)
+                            .unwrap();
+                        
+                        detail.set_safe();
+                    });
 
-        // 5. Otherwise, check if the new hexagon is a valid attack.
-        // 5b. If not, Return false.
+                false
+            } else {
+                // Otherwise, check if the new hexagon is a valid attack.
+                // If not, Return false.
+                let mut valid: Option<usize> = None;
+                for t_coord in t_coords {
+                    //if t_coord == coordinate.into()
+                }
 
-        // 6. Carry out attack. Advance game state. Generate new Tesselation.
-        //    Return true.
+                // Carry out attack. Advance game state. Generate new Tesselation.
+                // Return true.
 
-        false
+                false
+            }
+        } else {
+            // Its a fresh attacking position
+            detail.set_attacking();
+            self.selected = Some((hex_index, coordinate));
+            drop(detail);
+
+            t_coords
+                .iter()
+                .for_each(|t_coord| {
+                    let threatened_index = self.turn
+                        .as_ref()
+                        .unwrap()
+                        .board()
+                        .grid()
+                        .fetch_index(t_coord)
+                        .unwrap();
+                    let detail = self.tessellation
+                        .as_mut()
+                        .unwrap()
+                        .hex_mut(threatened_index)
+                        .unwrap();
+                    
+                    detail.set_threatened();                
+                });
+            
+            false
+        }
     }
 }
 

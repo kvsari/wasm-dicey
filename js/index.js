@@ -61,6 +61,9 @@ canvas.addEventListener("click", event => {
 
     // Forward this coordinate to the game state and let it do its thing.
     game.select_hex_by_pixel(board_coord);
+
+    // Finally, we draw the board. It could have changed!
+    board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());
 });
 
 /*

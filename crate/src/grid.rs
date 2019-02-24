@@ -107,11 +107,9 @@ impl Tessellation {
         }
     }
 
-    /*
-    pub fn fetch(&mut self, coordinate: Axial) -> Option<&mut Detail> {
-        
+    pub fn hex_mut(&mut self, index: usize) -> Option<&mut Detail> {
+        self.hexes.get_mut(index)
     }
-    */
 }
 
 #[wasm_bindgen]

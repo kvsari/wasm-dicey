@@ -49,6 +49,13 @@ impl Blank {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+enum Danger {
+    Safe,
+    Attacking,
+    Threatened,
+}   
+
 /// A hexagon tile with all the information needed to render it to a HTML5 canvas.
 #[wasm_bindgen]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -57,7 +64,7 @@ pub struct Detail {
     center: Point,
     colours: Colours,
     player_number: usize,
-    selected: bool,
+    danger: Danger,
     dice: u8,
 }
 
@@ -75,7 +82,7 @@ impl Detail {
             center,
             colours: Colours::from_player_number(player_number),
             player_number,
-            selected: false,
+            danger: Danger::Safe,
             dice,
         }
     }
@@ -87,22 +94,22 @@ impl Detail {
         self.center
     }
     
-    pub fn select(&mut self) {
-        self.selected = true;
-    }
-
-    pub fn unselect(&mut self) {
-        self.selected = false;
-    }
-
-    pub fn selected(&self) -> bool {
-        self.selected
-    }
-
     // Doesn't work with `wasm-pack build`.
     //pub fn points(&self) -> [Point; 6] {
     //    self.points
     //}
+
+    pub fn set_safe(&mut self) {
+        self.danger = Danger::Safe;
+    }
+
+    pub fn set_attacking(&mut self) {
+        self.danger = Danger::Attacking;
+    }
+
+    pub fn set_threatened(&mut self) {
+        self.danger = Danger::Threatened;
+    }
 
     /// If index is out of bounds, will wrap around to the beginning, like going around a
     /// circle. Of course, a hexagon has six sides so the indexes will be from 0 to 5.
@@ -124,10 +131,10 @@ impl Detail {
     }
 
     pub fn colour(&self) -> Colour {
-        if self.selected {
-            self.colours.selected_colour
-        } else {
-            self.colours.unselected_colour
+        match self.danger {
+            Danger::Safe => self.colours.unselected_colour,
+            Danger::Attacking => self.colours.selected_colour,
+            Danger::Threatened => self.colours.threatened_colour,
         }
     }
 
