@@ -36,6 +36,35 @@ macro_rules! jslog {
     ($($t:tt)*) => (log(&format!($($t)*)))
 }
 
+#[derive(Debug, Copy, Clone)]
+struct Threatened {
+    index: usize,
+    cube: hexagon::Cube,
+}
+
+impl Threatened {
+    fn new(index: usize, cube: hexagon::Cube) -> Self {
+        Threatened { index, cube }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct Selected {
+    index: usize,
+    cube: hexagon::Cube,
+    threatened: Vec<Threatened>,
+}
+
+impl Selected {
+    fn new(index: usize, cube: hexagon::Cube, threatened: &[Threatened]) -> Self {
+        Selected {
+            index,
+            cube,
+            threatened: threatened.into_iter().map(|t| t.to_owned()).collect(),
+        }
+    }
+}
+
 /// Run a game handling the web input/output with the `Session`.
 #[wasm_bindgen]
 pub struct Game {
@@ -48,8 +77,8 @@ pub struct Game {
     /// There will always be a current turn.
     turn: Option<session::State>,
 
-    /// Index of selected hex if any.
-    selected: Option<(usize, hexagon::Cube)>,
+    /// Index of selected hex if any with threatened.
+    selected: Option<Selected>,
 }
 
 impl Game {
@@ -60,27 +89,11 @@ impl Game {
         let selected = None;
         let turn = Some(session.current_turn().to_owned());
         Game { session, template, tessellation, turn, selected }
-    }    
-}
-
-#[wasm_bindgen]
-impl Game {
-    pub fn tessellation(&self) -> Tessellation {
-        self.tessellation.clone().unwrap()
     }
 
-    /// This method will take a pixel coordinate with (0, 0) being the center point of the
-    /// first hexagon Cube(0, 0, 0). If a valid (for the current player) hex is selected,
-    /// this state will be stored in the `Tessellation`. Then if the player enters a second
-    /// follow up valid click then the game state will advance. True is returned in this
-    /// case. False if the game state wasn't advanced.
-    pub fn select_hex_by_pixel(&mut self, pixel: Point) -> bool {
-        // 1. Get the coordinate from the pixel point.
-        let coordinate = pixel.hexagon_axial(self.template.radius());
-
-        /*
-        // 2. Get the hexagon index.
-        let hex_index = match self.turn
+    fn select_hexagon(&mut self, coordinate: hexagon::Cube) {
+        // 1. Determine that the hexagon coordinate is valid.
+        let index = match self.turn
             .as_ref()
             .unwrap()
             .board()
@@ -88,22 +101,40 @@ impl Game {
             .fetch_index(coordinate) {
                 Ok(index) => index,
                 Err(e) => {
+                    // There is nothing more to do here. Log error then exit.
                     jslog!("Invalid hexagon coordinate: {}", &e);
-                    return false;
+                    return;
                 },
             };
-        */
 
-        /*
-        // Get the current hexagon
+        // 2. Check if a hexagon is already selected or not. That determines how we
+        //    treat this hexagon selection.
+        if let Some(selection) = self.selected.take() {
+            // A hexagon is already clicked.
+            jslog!("A hexagon is already selected.");
+            self.second_select_hexagon(selection, coordinate, index);
+        } else {
+            // No hexagon is clicked. This'll be easy.
+            jslog!("No hexagon is currently selected.");
+            self.first_select_hexagon(coordinate, index);
+        }
+    }
+
+    /// Select a hexagon and fill the `selected` slot with `Some(Selection)`. Expects
+    /// a valid `coordinate` and that no hexagon is currently selected.
+    fn first_select_hexagon(&mut self, coordinate: hexagon::Cube, index: usize) {
+        // 1. Get the hexagon.
         let detail = self.tessellation
             .as_mut()
             .unwrap()
-            .hex_mut(hex_index)
+            .hex_mut(index)
             .unwrap();
-        */
-        
-        // We also want to see and update the colour of any threatened hexes.
+
+        // 2. Change the danger state of the selected hexagon. Then drop to release `self`.
+        detail.set_attacking();
+        drop(detail);
+
+        // 3. Fetch the coordinates of any threatened hexes
         let t_coords: Vec<hexagon::Cube> = self.turn
             .as_ref()
             .unwrap()
@@ -120,80 +151,94 @@ impl Game {
                 _ => None,
             })
             .collect();
-        
-        // 3. Check if there isn't already a selected hexagon.
-        if let Some((selected_index, selected_cube)) = self.selected {
-            if selected_cube == coordinate {
-                // If it's the selected hexagon. Deselect it.
+
+        // 4. Change the danger state of the threatened hexagons and return a record of
+        //    their location for later use.
+        let threatened: Vec<Threatened> = t_coords
+            .into_iter()
+            .map(|t_coord| {
+                let threatened_index = self.turn
+                    .as_ref()
+                    .unwrap()
+                    .board()
+                    .grid()
+                    .fetch_index(t_coord)
+                    .unwrap();
                 let detail = self.tessellation
                     .as_mut()
                     .unwrap()
-                    .hex_mut(hex_index)
+                    .hex_mut(threatened_index)
                     .unwrap();
-                detail.set_safe();
-                self.selected = None;
+                
+                detail.set_threatened();
 
-                // Reset the threatened hexagons (if any) to safe.
-                t_coords
-                    .iter()
-                    .for_each(|t_coord| {
-                        let threatened_index = self.turn
-                            .as_ref()
-                            .unwrap()
-                            .board()
-                            .grid()
-                            .fetch_index(t_coord)
-                            .unwrap();
-                        let detail = self.tessellation
-                            .as_mut()
-                            .unwrap()
-                            .hex_mut(threatened_index)
-                            .unwrap();
-                        
-                        detail.set_safe();
-                    });
+                Threatened::new(threatened_index, t_coord)
+            })
+            .collect();
 
-                false
-            } else {
-                // Otherwise, check if the new hexagon is a valid attack.
-                // If not, Return false.
-                let mut valid: Option<usize> = None;
-                for t_coord in t_coords {
-                    //if t_coord == coordinate.into()
-                }
+        // 5. Save the entire selection state.
+        let selected = Selected::new(index, coordinate, threatened.as_slice());
+        self.selected = Some(selected);
+    }
 
-                // Carry out attack. Advance game state. Generate new Tesselation.
-                // Return true.
-
-                false
-            }
-        } else {
-            // Its a fresh attacking position
-            detail.set_attacking();
-            self.selected = Some((hex_index, coordinate));
-            drop(detail);
-
-            t_coords
-                .iter()
-                .for_each(|t_coord| {
-                    let threatened_index = self.turn
-                        .as_ref()
-                        .unwrap()
-                        .board()
-                        .grid()
-                        .fetch_index(t_coord)
-                        .unwrap();
-                    let detail = self.tessellation
-                        .as_mut()
-                        .unwrap()
-                        .hex_mut(threatened_index)
-                        .unwrap();
-                    
-                    detail.set_threatened();                
-                });
-            
-            false
+    /// Select a hexagon where one is already `selected`. This could be a valid attacking
+    /// move, deselecting the attacking hex or an invalid move which does nothing. Expects
+    /// that the `selected` slot is `Some` and that the `coordinate` and `index` are valid.
+    fn second_select_hexagon(
+        &mut self, selection: Selected, coordinate: hexagon::Cube, index: usize
+    ) {
+        // 1. Determine if the hex is the attacking hex.
+        if selection.index == index {
+            jslog!("Attacking hexagon at {} stands down.", &coordinate);
+            return self.deselect_hexagon(selection);
         }
+
+        // 2. Otherwise check if a threatened hex was selected.
+
+        // 3. The hex chosen was an invalid move. Log and set the selection back.
+        jslog!("Invalid attacking move: {}", &coordinate);
+        self.selected = Some(selection);
+    }
+
+    /// Set the attacking hexagons danger level as well as any threatened hexagons to the
+    /// `Safe` state in the `selection`.
+    fn deselect_hexagon(&mut self, selection: Selected) {
+        // 1. Get the hexagon.
+        let detail = self.tessellation
+            .as_mut()
+            .unwrap()
+            .hex_mut(selection.index)
+            .unwrap();
+
+        // 2. Deselect and drop.
+        detail.set_safe();
+        drop(detail);
+
+        // 3. Loop through all threatened hexes and set them safe too.
+        selection.threatened
+            .into_iter()
+            .for_each(|threatened| {
+                let detail = self.tessellation
+                    .as_mut()
+                    .unwrap()
+                    .hex_mut(threatened.index)
+                    .unwrap();
+                
+                detail.set_safe();
+            });
+    }
+}
+
+#[wasm_bindgen]
+impl Game {
+    pub fn tessellation(&self) -> Tessellation {
+        self.tessellation.clone().unwrap()
+    }
+
+    pub fn select_hex_with_pixel(&mut self, pixel: Point) {
+        // Convert the pixel (x, y) into a hexagon axial coordinate.
+        let coordinate = pixel.hexagon_axial(self.template.radius());
+        self.select_hexagon(coordinate.into());
     }
 }
 
