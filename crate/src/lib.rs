@@ -36,7 +36,7 @@ macro_rules! jslog {
     ($($t:tt)*) => (log(&format!($($t)*)))
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 struct Threatened {
     index: usize,
     cube: hexagon::Cube,
@@ -111,11 +111,10 @@ impl Game {
         //    treat this hexagon selection.
         if let Some(selection) = self.selected.take() {
             // A hexagon is already clicked.
-            jslog!("A hexagon is already selected.");
             self.second_select_hexagon(selection, coordinate, index);
         } else {
             // No hexagon is clicked. This'll be easy.
-            jslog!("No hexagon is currently selected.");
+            jslog!("Hexagon at {} is ready to attack.", &coordinate);
             self.first_select_hexagon(coordinate, index);
         }
     }
@@ -194,10 +193,42 @@ impl Game {
         }
 
         // 2. Otherwise check if a threatened hex was selected.
+        let check = Threatened::new(index, coordinate);
+        if selection.threatened.contains(&check) {
+            jslog!("Hexagon at {} is attacked!", &coordinate);
+            return self.attack_hexagon(check, selection);
+        }
 
         // 3. The hex chosen was an invalid move. Log and set the selection back.
         jslog!("Invalid attacking move: {}", &coordinate);
         self.selected = Some(selection);
+    }
+
+    /// A hexagon has been attacked. This will advance game state.
+    fn attack_hexagon(&mut self, attacked: Threatened, attacker: Selected) {
+        // 1. Find the choice
+        let action = game::Action::Attack(attacker.cube, attacked.cube);
+        let choice = self.turn
+            .as_ref()
+            .unwrap()
+            .choices()
+            .iter()
+            .find(|choice| *choice.action() == action)
+            .unwrap();
+
+        // 2. Advance session state.
+        let new_state = self.session
+            .advance(choice)
+            .unwrap()
+            .to_owned();
+
+        // 3. Update internal game state.
+        let tessellation = grid::generate_tessellation(
+            &self.template, new_state.board(),
+        );
+        self.turn = Some(new_state);
+        self.tessellation = Some(tessellation);
+        self.selected = None;
     }
 
     /// Set the attacking hexagons danger level as well as any threatened hexagons to the
