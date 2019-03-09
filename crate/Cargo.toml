@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
-dicey-dice = { git = "ssh://git@github.com/kvsari/dicey-dice.git", rev = "d8a484839d4da9f9127d055b04545024203e3015" }
+dicey-dice = { git = "ssh://git@github.com/kvsari/dicey-dice.git", rev = "a7bd43daa4136fbc40cfb55bd89968a45081ec4d" }
 cfg-if = "0.1.6"
 wasm-bindgen = "=0.2.34" # Lock to 0.2.34 due to bug https://github.com/rustwasm/wasm-bindgen/issues/1246
 console_error_panic_hook = { version = "0.1.5", optional = true }

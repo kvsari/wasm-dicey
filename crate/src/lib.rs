@@ -140,7 +140,7 @@ impl Game {
             .choices()
             .iter()
             .filter_map(|choice| match choice.action() {
-                game::Action::Attack(from_hex, to_hex) => {
+                game::Action::Attack(from_hex, to_hex, _) => {
                     if *from_hex == coordinate.into() {
                         Some(*to_hex)
                     } else {
@@ -206,14 +206,18 @@ impl Game {
 
     /// A hexagon has been attacked. This will advance game state.
     fn attack_hexagon(&mut self, attacked: Threatened, attacker: Selected) {
-        // 1. Find the choice
-        let action = game::Action::Attack(attacker.cube, attacked.cube);
+        // 1. Find the choice.
         let choice = self.turn
             .as_ref()
             .unwrap()
             .choices()
             .iter()
-            .find(|choice| *choice.action() == action)
+            .find(|choice| match choice.action() {
+                game::Action::Attack(from_hex, to_hex, _) => {
+                    (*from_hex == attacker.cube) && (*to_hex == attacked.cube)
+                },
+                _ => false
+            })
             .unwrap();
 
         // 2. Advance session state.
@@ -304,6 +308,7 @@ pub fn game_3x3_init(board_top_left: Point, hex_radius: u32) -> Game {
     let board = game::canned_3x3_start01();
     let session = session::Setup::new()
         .set_board(board)
+        .enable_ai_scoring()
         .session()
         .expect("Invalid session initialization");
 
