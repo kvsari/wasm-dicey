@@ -36,6 +36,12 @@ macro_rules! jslog {
     ($($t:tt)*) => (log(&format!($($t)*)))
 }
 
+#[wasm_bindgen]
+pub fn init() {
+    jslog!("Setting default panic hook.");
+    utils::set_panic_hook();
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 struct Threatened {
     index: usize,
@@ -140,7 +146,7 @@ impl Game {
             .choices()
             .iter()
             .filter_map(|choice| match choice.action() {
-                game::Action::Attack(from_hex, to_hex, _) => {
+                game::Action::Attack(from_hex, to_hex, _, _) => {
                     if *from_hex == coordinate.into() {
                         Some(*to_hex)
                     } else {
@@ -212,12 +218,14 @@ impl Game {
             .unwrap()
             .choices()
             .iter()
-            .find(|choice| match choice.action() {
-                game::Action::Attack(from_hex, to_hex, _) => {
+            .enumerate()
+            .find(|(_index, choice)| match choice.action() {
+                game::Action::Attack(from_hex, to_hex, _, _) => {
                     (*from_hex == attacker.cube) && (*to_hex == attacked.cube)
                 },
                 _ => false
             })
+            .map(|(index, _)| index)
             .unwrap();
 
         // 2. Advance session state.
@@ -277,6 +285,7 @@ impl Game {
     }
 }
 
+/*
 /// Test start a `Game` using one of the pre-baked `Boards`.
 #[wasm_bindgen]
 pub fn game_3x1_init(board_top_left: Point, hex_radius: u32) -> Game {
@@ -301,16 +310,20 @@ pub fn game_2x2_init(board_top_left: Point, hex_radius: u32) -> Game {
 
     Game::new(session, template)
 }
+*/
 
 #[wasm_bindgen]
 pub fn game_3x3_init(board_top_left: Point, hex_radius: u32) -> Game {
     let template = grid::generate_template(3, 3, board_top_left, hex_radius);
     let board = game::canned_3x3_start01();
-    let session = session::Setup::new()
-        .set_board(board)
-        .enable_ai_scoring()
-        .session()
-        .expect("Invalid session initialization");
-
+    jslog!("Getting board");
+    let session = match session::Setup::new().set_board(board).session() {
+        Ok(session) => session,
+        Err(e) => {
+            jslog!("Failed to create game session: {}", &e);
+            panic!("Failed to start session.");
+        },
+    };
+    jslog!("Created session");
     Game::new(session, template)
 }

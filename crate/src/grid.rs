@@ -2,7 +2,7 @@
 
 use wasm_bindgen::prelude::*;
 
-use dicey_dice::game::Board;
+use dicey_dice::game::{Holding, Board};
 
 use crate::hex::{Blank, Detail};
 use crate::primitive::Point;
@@ -146,7 +146,7 @@ pub (crate) fn generate_tessellation(template: &Template, board: &Board) -> Tess
             blank.points(),
             blank.center(),
             *hex.data().owner().number(),
-            *hex.data().dice(),
+            hex.data().dice(),
         ))
         .collect();
 

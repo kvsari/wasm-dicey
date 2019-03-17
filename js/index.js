@@ -7,6 +7,9 @@ const WIDTH = 700;
 const DIE_COLOUR = 'white';
 const DOT_COLOUR = 'black';
 
+// Setup for our wasm.
+dicey.init();
+
 // Debug helping function
 const drawCircle = (context, x, y, r) => {
     context.beginPath();
@@ -59,3 +62,4 @@ canvas.addEventListener("click", event => {
 });
 
 board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());
+
