@@ -5,7 +5,63 @@
     <title>Dicey Dice</title>
   </head>
   <body>
-    <canvas id="dice-board"></canvas>
-    <button id="greet">Greet</button>
+    <h1>Dicey Dice</h1>
+    <label>
+      Board Size:
+      <select id="board-size">
+        <option value="2x2">2x2</option>
+        <option value="3x3">3x3</option>
+        <option value="4x4">4x4</option>
+        <option value="5x5">5x5</option>
+        <option value="6x6">6x6</option>
+        <option value="7x7">7x7</option>
+        <option value="8x8">8x8</option>
+      </select>
+    </label>
+    <label>
+      Player 1:
+      <select id="player1">
+        <option value="human">human</option>
+        <option value="ai">ai</option>
+      </select>
+    </label>
+    <label>
+      Player 2:
+      <select id="player2">
+        <option value="human">human</option>
+        <option value="ai">ai</option>
+      </select>
+    </label>
+    <label>
+      Player 3:
+      <select id="player3">
+        <option value="absent">absent</option>
+        <option value="human">human</option>
+        <option value="ai">ai</option>
+      </select>
+    </label>
+    <label>
+      Player 4:
+      <select id="player4">
+        <option value="absent">absent</option>
+        <option value="human">human</option>
+        <option value="ai">ai</option>
+      </select>
+    </label>
+    <br>
+    <label>
+      Max Player Turns:
+      <input id="turns" name="turns" type="number" step="1" min="2" max="6" value="3">
+    </label>
+    <label>
+      AI Calculation Horizon:
+      <input id="horizon" name="horizon" type="number" step="1" min="2" max="50" value="5">
+    </label>
+    <button id="play">Play</button>
+    <br>
+    <canvas id="dice-board">The game board.</canvas>
+    <section id="battle-log">
+      <h3>Battle Log</h3>
+    </section>
   </body>
 </html>
