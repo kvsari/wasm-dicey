@@ -39,3 +39,11 @@ export const calculate_game_dimensions = (board_size, canvas_side) => {
     };
     }
 }
+
+export const player_option_to_code = (option) => {
+    switch (option) {
+    case "human": return 1;
+    case "ai"   : return 2;
+    default     : return 0;
+    };
+}

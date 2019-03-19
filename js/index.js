@@ -4,7 +4,7 @@ import * as board from "./board.js";
 import * as prepare from "./prepare.js";
 
 const SIDE = 800;
-const HEX_RADIUS = SIDE / (8 * 2);
+const HEX_RADIUS = SIDE / 6;
 const DIE_COLOUR = 'white';
 const DOT_COLOUR = 'black';
 
@@ -28,7 +28,7 @@ const drawHexBoardRelativeCircle = (context, point, radius) => {
 }
 
 // Game board top left hex center point
-const tl_point = dicey.Point.new(100, 100);
+const tl_point = dicey.Point.new(HEX_RADIUS, HEX_RADIUS);
 
 // Setup our canvas
 const canvas = document.getElementById("dice-board");
@@ -38,6 +38,11 @@ const ctx = canvas.getContext('2d');
 
 // Setup our game. This is just an example one to start off.
 var game = dicey.game_3x3_init(tl_point, HEX_RADIUS);
+
+const display_player = (num, moves) => {
+    document.getElementById("play-status").innerText = "Current: Player" + num +
+        ". Moves Left: " + moves;
+}
 
 // Grab our game settings!
 const playButton = document.getElementById("play");
@@ -57,7 +62,20 @@ playButton.addEventListener("click", event => {
     let hex_radius = dimensions[1];
     let side = dimensions[2];
 
-    game = dicey.start_new_game(side, tl_point, hex_radius, parseInt(turns));
+    game = dicey.start_new_game(
+        side,
+        tl_point,
+        hex_radius,
+        parseInt(turns),
+        prepare.player_option_to_code(player1),
+        prepare.player_option_to_code(player2),
+        prepare.player_option_to_code(player3),
+        prepare.player_option_to_code(player4)
+    );
+
+    let player_id = game.current_player_id();
+    let player_moves_left = game.current_player_moves_left();
+    display_player(player_id, player_moves_left);
 
     // Kick off our new game
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -81,6 +99,11 @@ canvas.addEventListener("click", event => {
 
     // Forward this coordinate to the game state and let it do its thing.
     game.select_hex_with_pixel(board_coord);
+
+    // Update the play-status with any changes.
+    let player_id = game.current_player_id();
+    let player_moves_left = game.current_player_moves_left();
+    display_player(player_id, player_moves_left);
 
     // Finally, we draw the board. It could have changed!
     board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());

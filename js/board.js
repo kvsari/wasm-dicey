@@ -9,7 +9,7 @@ const drawHexDetail = (ctx, detail) => {
     var colour = css_colour_from_num(detail.colour());
 
     ctx.fillStyle = colour;
-    ctx.strokeStyle = colour;
+    ctx.strokeStyle = 'black';
 
     let fpoint = detail.point(0);
     ctx.moveTo(fpoint.x(), fpoint.y());

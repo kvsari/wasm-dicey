@@ -247,4 +247,15 @@ impl Game {
         let coordinate = pixel.hexagon_axial(self.template.radius());
         self.select_hexagon(coordinate.into());
     }
+
+    pub fn current_player_id(&self) -> u8 {
+        let state = self.turn.as_ref().unwrap();
+        *state.board().players().current().number() as u8
+    }
+
+    pub fn current_player_moves_left(&self) -> u8 {
+        let state = self.turn.as_ref().unwrap();
+        let moves = state.board().moved();
+        self.session.move_limit().get() - moves
+    }
 }
