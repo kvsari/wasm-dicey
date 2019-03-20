@@ -57,7 +57,7 @@ pub fn game_3x3_init(board_top_left: Point, hex_radius: u32) -> play::Game {
             },
         };
     jslog!("Created session");
-    play::Game::new(session, template)
+    play::Game::new(session, HashSet::new(), 1, template)
 }
 
 #[wasm_bindgen]
@@ -70,6 +70,7 @@ pub fn start_new_game(
     player2_code: u8,
     player3_code: u8,
     player4_code: u8,
+    ai_compute_horizon: usize,
 ) -> play::Game {
     let template = grid::generate_template(
         board_size, board_size, board_top_left, hex_radius
@@ -114,5 +115,5 @@ pub fn start_new_game(
             },
         };
     jslog!("Created session");
-    play::Game::new(session, template)
+    play::Game::new(session, ai_players, ai_compute_horizon, template)
 }

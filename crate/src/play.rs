@@ -1,4 +1,5 @@
 //! Game state handling stuff.
+use std::collections::HashSet;
 
 use wasm_bindgen::prelude::*;
 
@@ -6,6 +7,42 @@ use dicey_dice::{session, hexagon, game};
 use crate::grid::{self, Template, Tessellation};
 use crate::primitive::Point;
 use crate::{log, jslog};
+
+/// Rely on the choice scoring to move.
+fn handle_ai_turn(choices: &[game::Choice]) -> usize {
+    let (index, _) = choices
+        .iter()
+        .enumerate()
+        .fold((0, game::Score::default()), |(index, best), (count, choice)| {
+            let score = choice.score().unwrap();
+            if score > best {
+                (count, score)
+            } else {
+                (index, best)
+            }
+        });
+
+    index
+}
+
+
+#[wasm_bindgen]
+pub struct Advancement {
+    ai_turn: bool,
+}
+
+impl Advancement {
+    fn new(ai_turn: bool) -> Self {
+        Advancement { ai_turn }
+    }
+}
+
+#[wasm_bindgen]
+impl Advancement {
+    pub fn ai_turn(&self) -> bool {
+        self.ai_turn
+    }
+}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 struct Threatened {
@@ -39,7 +76,9 @@ impl Selected {
 #[wasm_bindgen]
 pub struct Game {
     session: session::Session,
-    template: Template,
+    ai_players: HashSet<game::Player>,
+    ai_compute_horizon: usize,
+    template: Template,    
 
     /// There will always be a tessellation. It is a bug if this field is left `None`.
     tessellation: Option<Tessellation>,
@@ -52,13 +91,26 @@ pub struct Game {
 }
 
 impl Game {
-    pub (crate) fn new(session: session::Session, template: Template) -> Self {
+    pub (crate) fn new(
+        session: session::Session,
+        ai_players: HashSet<game::Player>,
+        ai_compute_horizon: usize,
+        template: Template,
+    ) -> Self {
         let tessellation = Some(grid::generate_tessellation(
             &template, session.current_turn().board(),
         ));
         let selected = None;
         let turn = Some(session.current_turn().to_owned());
-        Game { session, template, tessellation, turn, selected }
+        Game {
+            session,
+            ai_players,
+            ai_compute_horizon,
+            template,
+            tessellation,
+            turn,
+            selected
+        }
     }
 
     fn select_hexagon(&mut self, coordinate: hexagon::Cube) {
@@ -248,6 +300,12 @@ impl Game {
         self.select_hexagon(coordinate.into());
     }
 
+    pub fn current_player_ai(&self) -> bool {
+        let state = self.session.current_turn().to_owned();
+        let curr_player = state.board().players().current();
+        self.ai_players.contains(&curr_player)
+    }
+
     pub fn current_player_id(&self) -> u8 {
         let state = self.turn.as_ref().unwrap();
         *state.board().players().current().number() as u8
@@ -257,5 +315,46 @@ impl Game {
         let state = self.turn.as_ref().unwrap();
         let moves = state.board().moved();
         self.session.move_limit().get() - moves
+    }
+
+    pub fn current_player_dice_captured(&self) -> u8 {
+        let state = self.turn.as_ref().unwrap();
+        *state.board().captured_dice()
+    }
+
+    /// Attempts to advance the game without player input. This is possible if AI playing
+    /// is activated and it's the AI's turn. A successful AI game advancement will return
+    /// `true`. Otherwise `false` is returned signalling that the current player is human
+    /// or the game is over.
+    pub fn advance(&mut self) -> bool {
+        let state = self.session.current_turn().to_owned();
+        let curr_player = state.board().players().current();
+
+        // Check if the game is over.
+         match state.game() {
+            session::Progression::PlayOn(_outcome) => (),
+            session::Progression::GameOverWinner(player) => {
+                jslog!("Game Over\nWinner is {}", &player);
+                return false;
+            },
+            session::Progression::GameOverStalemate(players) => {
+                jslog!("Game Over\nSTATELMATE between players {:?}", &players);
+                return false;
+            },
+        }
+
+        if self.ai_players.contains(&curr_player) {
+            drop(state);
+            let state = self.session.score_with_depth_horizon(self.ai_compute_horizon);
+            let index = handle_ai_turn(state.choices().as_slice());
+            drop(state);
+            let state = self.session.advance(index).unwrap();
+            let tessellation = grid::generate_tessellation(&self.template, state.board());
+            self.turn = Some(state.to_owned());
+            self.tessellation = Some(tessellation);
+            true
+        } else {
+            false
+        }
     }
 }

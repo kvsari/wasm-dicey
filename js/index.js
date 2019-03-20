@@ -2,6 +2,7 @@ import * as dicey from "../crate/pkg/wasm_dicey";
 import { memory } from "../crate/pkg/wasm_dicey_bg";
 import * as board from "./board.js";
 import * as prepare from "./prepare.js";
+//import * as advance from "./advance.js";
 
 const SIDE = 800;
 const HEX_RADIUS = SIDE / 6;
@@ -39,9 +40,26 @@ const ctx = canvas.getContext('2d');
 // Setup our game. This is just an example one to start off.
 var game = dicey.game_3x3_init(tl_point, HEX_RADIUS);
 
-const display_player = (num, moves) => {
-    document.getElementById("play-status").innerText = "Current: Player" + num +
-        ". Moves Left: " + moves;
+const display_player = (num, moves, captured, ai) => {
+    if (ai) {
+        document.getElementById("play-status").innerText = "AI Player" + num +
+            ". Moves Left: " + moves + ". Captured Dice: " + captured;
+    } else {
+        document.getElementById("play-status").innerText = "Current: Player" + num +
+            ". Moves Left: " + moves + ". Captured Dice: " + captured;
+    }
+}
+
+const play_on = () => {
+    while (game.advance()) {
+        let player_id = game.current_player_id();
+        let player_moves_left = game.current_player_moves_left();
+        let captured_dice = game.current_player_dice_captured();
+        let is_ai = game.current_player_ai();
+        display_player(player_id, player_moves_left, captured_dice, is_ai);
+        board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());
+        setTimeout(function() { 1 + 1; }, 1000);
+    }
 }
 
 // Grab our game settings!
@@ -70,21 +88,20 @@ playButton.addEventListener("click", event => {
         prepare.player_option_to_code(player1),
         prepare.player_option_to_code(player2),
         prepare.player_option_to_code(player3),
-        prepare.player_option_to_code(player4)
+        prepare.player_option_to_code(player4),
+        parseInt(horizon)
     );
 
     let player_id = game.current_player_id();
     let player_moves_left = game.current_player_moves_left();
-    display_player(player_id, player_moves_left);
+    let captured_dice = game.current_player_dice_captured();
+    let is_ai = game.current_player_ai();
+    display_player(player_id, player_moves_left, captured_dice, is_ai);
 
     // Kick off our new game
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());
-
-    /*
-    alert(board_size + " " + player1 + " " + player2 + " " + player3 + " " + player4
-          + " " + turns + " " + horizon);
-    */
+    play_on();
 });
 
 // Handle clicks on the canvas
@@ -103,10 +120,12 @@ canvas.addEventListener("click", event => {
     // Update the play-status with any changes.
     let player_id = game.current_player_id();
     let player_moves_left = game.current_player_moves_left();
-    display_player(player_id, player_moves_left);
+    let captured_dice = game.current_player_dice_captured();
+    display_player(player_id, player_moves_left, captured_dice);
 
     // Finally, we draw the board. It could have changed!
     board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());
+    play_on();
 });
 
 board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());
