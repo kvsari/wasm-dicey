@@ -25,7 +25,6 @@ fn handle_ai_turn(choices: &[game::Choice]) -> usize {
     index
 }
 
-
 #[wasm_bindgen]
 pub struct Advancement {
     ai_turn: bool,

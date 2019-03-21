@@ -50,6 +50,18 @@ const display_player = (num, moves, captured, ai) => {
     }
 }
 
+const add_battle_log = (entry) => {
+    let br = document.createElement("br");
+    let p = document.createElement("p");
+    let content = document.createTextNode(entry);
+    p.appendChild(content);
+    
+    let heading = document.getElementById("battle-heading");
+    let section = heading.parentNode;
+    section.insertBefore(content, heading.nextSibling);
+    section.insertBefore(br, heading.nextSibling);
+}
+
 const play_on = () => {
     while (game.advance()) {
         let player_id = game.current_player_id();
@@ -101,6 +113,7 @@ playButton.addEventListener("click", event => {
     // Kick off our new game
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());
+    add_battle_log("New game starting!");
     play_on();
 });
 
@@ -116,6 +129,7 @@ canvas.addEventListener("click", event => {
 
     // Forward this coordinate to the game state and let it do its thing.
     game.select_hex_with_pixel(board_coord);
+    add_battle_log("Player moved.");
 
     // Update the play-status with any changes.
     let player_id = game.current_player_id();
@@ -124,7 +138,7 @@ canvas.addEventListener("click", event => {
     display_player(player_id, player_moves_left, captured_dice);
 
     // Finally, we draw the board. It could have changed!
-    board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());
+    board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());    
     play_on();
 });
 
