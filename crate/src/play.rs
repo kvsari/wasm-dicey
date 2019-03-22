@@ -25,22 +25,63 @@ fn handle_ai_turn(choices: &[game::Choice]) -> usize {
     index
 }
 
-#[wasm_bindgen]
-pub struct Advancement {
-    ai_turn: bool,
-}
+fn state_to_log(state: &session::State) -> String {
+    /*
+    // traversals only contain passes.
+    let traversal = state
+        .traversal()
+        .iter()
+        .enumerate()
+        .fold(String::new(), |mut trv, (count, (prev_board, choice))| {
+            if count > 0 {
+                trv.push('\n');
+            }
+            match choice.consequence() {
+                game::Consequence::GameOver(_) => {
+                    trv.push_str(&format!(
+                        "Game Over for {:?}", prev_board.players().current(),
+                    ));
+                },                
+                game::Consequence::TurnOver(_) => {
+                    trv.push_str(&format!(
+                        "Game Over for {:?}", prev_board.players().current(),
+                    ));
+                },
+                _ => unreachable!(), // Only gameovers/turnover should be in traversal.
+            }
+            trv
+        });
+    */
 
-impl Advancement {
-    fn new(ai_turn: bool) -> Self {
-        Advancement { ai_turn }
+    match state.game() {
+        session::Progression::PlayOn(ref attack) => attack.to_string(),
+        session::Progression::GameOverWinner(ref player) => {
+            format!("Game Over. Winner is {}", player)
+        },
+        session::Progression::GameOverStalemate(ref players) => {
+            format!(
+                "Game Over. STATELEMATE between players: {}.",
+                players
+                    .iter()
+                    .enumerate()
+                    .fold(String::new(), |mut players, (count, player)| {
+                        if count > 0 {
+                            players.push_str(", ");
+                        }
+                        players.push_str(&player.to_string());
+                        players
+                    })
+            )
+        },
     }
-}
 
-#[wasm_bindgen]
-impl Advancement {
-    pub fn ai_turn(&self) -> bool {
-        self.ai_turn
+    /*
+    if traversal.is_empty() {
+        progress
+    } else {
+        format!("{}\n{}", traversal, progress)
     }
+    */
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -112,7 +153,7 @@ impl Game {
         }
     }
 
-    fn select_hexagon(&mut self, coordinate: hexagon::Cube) {
+    fn select_hexagon(&mut self, coordinate: hexagon::Cube) -> bool {
         // 1. Determine that the hexagon coordinate is valid.
         let index = match self.turn
             .as_ref()
@@ -124,7 +165,7 @@ impl Game {
                 Err(e) => {
                     // There is nothing more to do here. Log error then exit.
                     jslog!("Invalid hexagon coordinate: {}", &e);
-                    return;
+                    return false;
                 },
             };
 
@@ -132,11 +173,12 @@ impl Game {
         //    treat this hexagon selection.
         if let Some(selection) = self.selected.take() {
             // A hexagon is already clicked.
-            self.second_select_hexagon(selection, coordinate, index);
+            self.second_select_hexagon(selection, coordinate, index)
         } else {
             // No hexagon is clicked. This'll be easy.
             jslog!("Hexagon at {} is ready to attack.", &coordinate);
             self.first_select_hexagon(coordinate, index);
+            false
         }
     }
 
@@ -206,23 +248,26 @@ impl Game {
     /// that the `selected` slot is `Some` and that the `coordinate` and `index` are valid.
     fn second_select_hexagon(
         &mut self, selection: Selected, coordinate: hexagon::Cube, index: usize
-    ) {
+    ) -> bool {
         // 1. Determine if the hex is the attacking hex.
         if selection.index == index {
             jslog!("Attacking hexagon at {} stands down.", &coordinate);
-            return self.deselect_hexagon(selection);
+            self.deselect_hexagon(selection);
+            return false;
         }
 
         // 2. Otherwise check if a threatened hex was selected.
         let check = Threatened::new(index, coordinate);
         if selection.threatened.contains(&check) {
             jslog!("Hexagon at {} is attacked!", &coordinate);
-            return self.attack_hexagon(check, selection);
+            self.attack_hexagon(check, selection);
+            return true;
         }
 
         // 3. The hex chosen was an invalid move. Log and set the selection back.
         jslog!("Invalid attacking move: {}", &coordinate);
         self.selected = Some(selection);
+        false
     }
 
     /// A hexagon has been attacked. This will advance game state.
@@ -293,10 +338,10 @@ impl Game {
         self.tessellation.clone().unwrap()
     }
 
-    pub fn select_hex_with_pixel(&mut self, pixel: Point) {
+    pub fn select_hex_with_pixel(&mut self, pixel: Point) -> bool {
         // Convert the pixel (x, y) into a hexagon axial coordinate.
         let coordinate = pixel.hexagon_axial(self.template.radius());
-        self.select_hexagon(coordinate.into());
+        self.select_hexagon(coordinate.into())
     }
 
     pub fn current_player_ai(&self) -> bool {
@@ -321,6 +366,12 @@ impl Game {
         *state.board().captured_dice()
     }
 
+    /// Convert current state to \n separated string.
+    pub fn state_log(&self) -> String {
+        let state = self.turn.as_ref().unwrap();
+        state_to_log(state)
+    }
+
     /// Attempts to advance the game without player input. This is possible if AI playing
     /// is activated and it's the AI's turn. A successful AI game advancement will return
     /// `true`. Otherwise `false` is returned signalling that the current player is human
@@ -330,14 +381,14 @@ impl Game {
         let curr_player = state.board().players().current();
 
         // Check if the game is over.
-         match state.game() {
+        match state.game() {
             session::Progression::PlayOn(_outcome) => (),
             session::Progression::GameOverWinner(player) => {
-                jslog!("Game Over\nWinner is {}", &player);
+                jslog!("Game Over. Winner is {}", &player);
                 return false;
             },
             session::Progression::GameOverStalemate(players) => {
-                jslog!("Game Over\nSTATELMATE between players {:?}", &players);
+                jslog!("Game Over. STALEMATE between players {:?}", &players);
                 return false;
             },
         }

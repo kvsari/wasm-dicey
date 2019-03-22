@@ -62,14 +62,23 @@ const add_battle_log = (entry) => {
     section.insertBefore(br, heading.nextSibling);
 }
 
+const add_battle_log_items = (items) => {
+    let entries = items.split("\n");
+    for (var i in entries) {
+        add_battle_log(entries[i]);
+    }
+}
+
 const play_on = () => {
     while (game.advance()) {
+        let log_items = game.state_log();
         let player_id = game.current_player_id();
         let player_moves_left = game.current_player_moves_left();
         let captured_dice = game.current_player_dice_captured();
         let is_ai = game.current_player_ai();
         display_player(player_id, player_moves_left, captured_dice, is_ai);
         board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());
+        add_battle_log_items(log_items);
         setTimeout(function() { 1 + 1; }, 1000);
     }
 }
@@ -128,17 +137,19 @@ canvas.addEventListener("click", event => {
     var board_coord = dicey.Point.new(x - board_start.x(), y - board_start.y());
 
     // Forward this coordinate to the game state and let it do its thing.
-    game.select_hex_with_pixel(board_coord);
-    add_battle_log("Player moved.");
-
+    if (game.select_hex_with_pixel(board_coord)) {
+        let log_items = game.state_log();
+        add_battle_log_items(log_items);
+    }
+    
     // Update the play-status with any changes.
     let player_id = game.current_player_id();
     let player_moves_left = game.current_player_moves_left();
     let captured_dice = game.current_player_dice_captured();
     display_player(player_id, player_moves_left, captured_dice);
-
+    
     // Finally, we draw the board. It could have changed!
-    board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());    
+    board.drawGameBoard(ctx, DIE_COLOUR, DOT_COLOUR, game.tessellation());
     play_on();
 });
 
