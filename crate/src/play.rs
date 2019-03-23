@@ -26,37 +26,10 @@ fn handle_ai_turn(choices: &[game::Choice]) -> usize {
 }
 
 fn state_to_log(state: &session::State) -> String {
-    /*
-    // traversals only contain passes.
-    let traversal = state
-        .traversal()
-        .iter()
-        .enumerate()
-        .fold(String::new(), |mut trv, (count, (prev_board, choice))| {
-            if count > 0 {
-                trv.push('\n');
-            }
-            match choice.consequence() {
-                game::Consequence::GameOver(_) => {
-                    trv.push_str(&format!(
-                        "Game Over for {:?}", prev_board.players().current(),
-                    ));
-                },                
-                game::Consequence::TurnOver(_) => {
-                    trv.push_str(&format!(
-                        "Game Over for {:?}", prev_board.players().current(),
-                    ));
-                },
-                _ => unreachable!(), // Only gameovers/turnover should be in traversal.
-            }
-            trv
-        });
-    */
-
     match state.game() {
         session::Progression::PlayOn(ref attack) => attack.to_string(),
         session::Progression::GameOverWinner(ref player) => {
-            format!("Game Over. Winner is {}", player)
+            format!("Game Over. Winner is Player{}", player.number())
         },
         session::Progression::GameOverStalemate(ref players) => {
             format!(
@@ -68,20 +41,12 @@ fn state_to_log(state: &session::State) -> String {
                         if count > 0 {
                             players.push_str(", ");
                         }
-                        players.push_str(&player.to_string());
+                        players.push_str(&format!("Player{}", player.number()));
                         players
                     })
             )
         },
     }
-
-    /*
-    if traversal.is_empty() {
-        progress
-    } else {
-        format!("{}\n{}", traversal, progress)
-    }
-    */
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

@@ -5,7 +5,7 @@ import * as prepare from "./prepare.js";
 //import * as advance from "./advance.js";
 
 const SIDE = 800;
-const HEX_RADIUS = SIDE / 6;
+const HEX_RADIUS = SIDE / 6.3;
 const DIE_COLOUR = 'white';
 const DOT_COLOUR = 'black';
 

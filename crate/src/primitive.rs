@@ -202,6 +202,8 @@ impl Colours {
     pub (crate) fn from_player_number(player_number: usize) -> Self {
 
         // We could match from 0 but then it wouldn't line up with the `Player` struct.
+        // There's an obvious bug here. The first colour set is skipped and player 1 starts
+        // at `Green` instead of `Blue`.
         let player_number = (player_number % 6) + 1; 
                                                    
         match player_number {

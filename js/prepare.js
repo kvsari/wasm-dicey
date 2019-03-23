@@ -6,11 +6,11 @@ import * as dicey from "../crate/pkg/wasm_dicey";
 export const calculate_game_dimensions = (board_size, canvas_side) => {
     switch (board_size) {
     case "2x2": {
-        let hex_radius = canvas_side / 4;
+        let hex_radius = canvas_side / 4.5;
         return [dicey.Point.new(hex_radius, hex_radius), hex_radius, 2];
     };
     case "3x3": {
-        let hex_radius = canvas_side / 6;
+        let hex_radius = canvas_side / 6.3;
         return [dicey.Point.new(hex_radius, hex_radius), hex_radius, 3];
     };
     case "4x4": {
