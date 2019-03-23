@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["Stephan Luther <kvsari@gmail.com>"]
 description = "Wasm frontend for dicey-dice."
 edition = "2018"
+license = "MIT"
+repository = "https://github.com/kvsari/wasm-dicey"
 
 [lib]
 crate-type = ["cdylib"]
@@ -12,7 +14,7 @@ crate-type = ["cdylib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
-dicey-dice = { git = "ssh://git@github.com/kvsari/dicey-dice.git", rev = "60ebcf6fea3400bb58947fd08a3225b9bfdd045b" }
+dicey-dice = { git = "ssh://git@github.com/kvsari/dicey-dice.git", rev = "83f1ac233567bc28ff5cba6b4ab781d4cf2b3cd8" }
 cfg-if = "0.1.7"
 wasm-bindgen = "=0.2.39"
 console_error_panic_hook = { version = "0.1.6", optional = true }

@@ -25,3 +25,5 @@ To run locally using the development server, after [building](#how-to-build), ru
 npm run start
 ```
 
+## Deployment
+
